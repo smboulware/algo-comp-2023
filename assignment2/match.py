@@ -1,5 +1,7 @@
+from queue import PriorityQueue
 import numpy as np
 from typing import List, Tuple
+from random import shuffle
 
 def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List[Tuple]:
     """
@@ -21,7 +23,73 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
             - What data structure can you use to take advantage of this fact when forming your matches?
         - This is by no means an exhaustive list, feel free to reach out to us for more help!
     """
-    matches = [()]
+
+    for i in range (len(scores)):
+        for j in range (len(scores)):
+            if gender_id[i] == "Male" and gender_pref[j] == "Women":
+                scores[i][j] = 0
+                scores[j][i] = 0
+            if gender_id[i] == "Female" and gender_pref[j] == "Men":
+                scores[i][j] = 0  
+                scores[j][i] = 0         
+
+            if gender_id[j] == "Male" and gender_pref[i] == "Women":
+                scores[i][j] = 0
+                scores[j][i] = 0
+            if gender_id[j] == "Female" and gender_pref[i] == "Men":
+                scores[i][j] = 0   
+                scores[j][i] = 0  
+
+    print(scores)
+    shuffle(scores)
+
+    n = len(scores) // 2
+
+    proposer_rankings = []
+    for i in range (n):
+        i_rank = []
+        for j in range (n):
+            i_rank.append(j)
+        i_rank = sorted(i_rank, key=lambda x: scores[i][x + n])
+        proposer_rankings.append(i_rank)
+    
+    receiver_rankings = []
+    for i in range (n):
+        i_rank = []
+        for j in range (n):
+            i_rank.append((j))
+        i_rank = sorted(i_rank, key=lambda x: scores[x])
+        receiver_rankings.append(i_rank)
+
+    matches = []
+
+    proposer_status = []
+    for i in range (n):
+        proposer_status.append(i)
+
+    receiver_status = []
+    for i in range (n):
+        receiver_status.append(-1)
+
+    while proposer_status != []:
+        print(matches)
+        proposer = proposer_status.pop(0)
+        for i in range (n):
+            choice = proposer_rankings[proposer][i]
+            if receiver_status[choice] == -1:
+                matches.append((proposer, choice + n))
+                receiver_status[choice] = proposer
+                break
+            elif receiver_rankings[choice].index(proposer) < receiver_rankings[choice].index(receiver_status[choice]):
+                matches.append((proposer, choice + n))
+                matches.remove((receiver_status[choice], choice + n))
+                proposer_status.append(receiver_status[choice])
+                receiver_status[choice] = proposer
+                break
+    
+    print(matches)
+    for match in matches:
+        print(scores[match[0]][match[1]])
     return matches
 
 if __name__ == "__main__":
