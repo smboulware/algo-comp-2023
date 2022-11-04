@@ -1,7 +1,7 @@
 from queue import PriorityQueue
 import numpy as np
 from typing import List, Tuple
-from random import shuffle
+import random
 
 def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List[Tuple]:
     """
@@ -40,17 +40,27 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
                 scores[i][j] = 0   
                 scores[j][i] = 0  
 
-    print(scores)
-    shuffle(scores)
-
     n = len(scores) // 2
+    proposers = []
+    receivers = []
+
+    for i in range(10):
+        if len(proposers) == 5:
+            receivers.append(i)
+        elif len(receivers) == 5:
+            proposers.append(i)
+        else:
+            if random.uniform(0,1) > 0.5:
+                proposers.append(i)
+            else:
+                receivers.append(i)
 
     proposer_rankings = []
     for i in range (n):
         i_rank = []
         for j in range (n):
             i_rank.append(j)
-        i_rank = sorted(i_rank, key=lambda x: scores[i][x + n])
+        i_rank = sorted(i_rank, key=lambda x: scores[proposers[i]][receivers[x]], reverse=True)
         proposer_rankings.append(i_rank)
     
     receiver_rankings = []
@@ -58,7 +68,7 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
         i_rank = []
         for j in range (n):
             i_rank.append((j))
-        i_rank = sorted(i_rank, key=lambda x: scores[x])
+        i_rank = sorted(i_rank, key=lambda x: scores[receivers[i]][proposers[x]], reverse=True)
         receiver_rankings.append(i_rank)
 
     matches = []
@@ -72,17 +82,16 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
         receiver_status.append(-1)
 
     while proposer_status != []:
-        print(matches)
         proposer = proposer_status.pop(0)
         for i in range (n):
             choice = proposer_rankings[proposer][i]
             if receiver_status[choice] == -1:
-                matches.append((proposer, choice + n))
+                matches.append((proposers[proposer], receivers[choice]))
                 receiver_status[choice] = proposer
                 break
             elif receiver_rankings[choice].index(proposer) < receiver_rankings[choice].index(receiver_status[choice]):
-                matches.append((proposer, choice + n))
-                matches.remove((receiver_status[choice], choice + n))
+                matches.append((proposers[proposer], receivers[choice]))
+                matches.remove((proposers[receiver_status[choice]], receivers[choice]))
                 proposer_status.append(receiver_status[choice])
                 receiver_status[choice] = proposer
                 break
@@ -90,6 +99,8 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
     print(matches)
     for match in matches:
         print(scores[match[0]][match[1]])
+        if scores[match[0]][match[1]] == 0:
+            matches[0] = (0,0)
     return matches
 
 if __name__ == "__main__":
@@ -106,4 +117,9 @@ if __name__ == "__main__":
             curr = line[:-1]
             gender_preferences.append(curr)
 
-    gs_matches = run_matching(raw_scores, genders, gender_preferences)
+    match = 0
+    while match == 0:
+        gs_matches = run_matching(raw_scores, genders, gender_preferences)
+        if (0,0) not in gs_matches:
+            match = 1
+
