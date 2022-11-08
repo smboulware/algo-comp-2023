@@ -24,6 +24,7 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
         - This is by no means an exhaustive list, feel free to reach out to us for more help!
     """
 
+    # Ensure gender compatability
     for i in range (len(scores)):
         for j in range (len(scores)):
             if gender_id[i] == "Male" and gender_pref[j] == "Women":
@@ -40,6 +41,8 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
                 scores[i][j] = 0   
                 scores[j][i] = 0  
 
+
+    # Choose proposers and receivers
     n = len(scores) // 2
     proposers = []
     receivers = []
@@ -55,6 +58,7 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
             else:
                 receivers.append(i)
 
+    # Calcualte rankings for each person
     proposer_rankings = []
     for i in range (n):
         i_rank = []
@@ -71,6 +75,7 @@ def run_matching(scores: List[List], gender_id: List, gender_pref: List) -> List
         i_rank = sorted(i_rank, key=lambda x: scores[receivers[i]][proposers[x]], reverse=True)
         receiver_rankings.append(i_rank)
 
+    # Match
     matches = []
 
     proposer_status = []
@@ -118,6 +123,7 @@ if __name__ == "__main__":
             gender_preferences.append(curr)
 
     match = 0
+    # Compute new matchings until there are no gender incomapatible matches
     while match == 0:
         gs_matches = run_matching(raw_scores, genders, gender_preferences)
         if (0,0) not in gs_matches:
